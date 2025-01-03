@@ -3,6 +3,7 @@ import { initialCards } from './cards.js';
 import { createCard, deleteCard, likeCard } from './card.js';
 import { openModal, closeModal } from './modal.js';
 import { activateValidation, resetValidationErrors, validateFormForEditing } from './validation.js';
+import { fetchUserProfile } from './api.js';
 
 // Переменные
 const cardTemplate = document.querySelector('#card-template').content;
@@ -16,9 +17,20 @@ const popupImage = document.querySelector('.popup_type_image');
 
 const profileTitle = document.querySelector('.profile__title');
 const profileDescription = document.querySelector('.profile__description');
+const profileAvatar = document.querySelector('.profile__image');
 
 const formProfile = document.forms.editProfile;
 const formCard = document.forms.newPlace;
+fetchUserProfile()
+  .then((userData) => {
+    // Устанавливаем данные на страницу
+    profileTitle.textContent = userData.name;
+    profileDescription.textContent = userData.about;
+    profileAvatar.style.backgroundImage = `url(${userData.avatar})`;
+  })
+  .catch((err) => {
+    console.error('Не удалось загрузить данные пользователя:', err);
+  });
 
 // Функции для работы с профилем
 function getProfileInfo(form, title, description) {
