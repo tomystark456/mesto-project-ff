@@ -14,9 +14,15 @@
   margin-top: 48px;
 }
 
-.popup__button:hover {
-  background: rgba(0, 0, 0, 0.8);
-  cursor: pointer;
+/*.popup__button:hover {*/
+/*  background: rgba(0, 0, 0, 0.8);*/
+/*  cursor: pointer;*/
+/*}*/
+.popup__button_disabled {
+  background-color: transparent; /* Цвет неактивной кнопки */
+  color: #999;
+  cursor: not-allowed;
+  border: 1px solid #999;
 }
 
 @media screen and (max-width: 568px) {
