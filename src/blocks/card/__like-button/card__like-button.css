@@ -1,8 +1,14 @@
+.card__like-container {
+  display: flex;
+  flex-direction: column; /* Ставим элементы в столбик */
+  align-items: center; /* Центрируем по горизонтали */
+  justify-content: center;
+}
+
 .card__like-button {
   width: 21px;
   height: 18px;
   background: transparent url('../../../images/like-inactive.svg') no-repeat;
-  
   background-size: 21px 18px;
   border: none;
   cursor: pointer;
@@ -17,4 +23,10 @@
 
 .card__like-button:hover {
   opacity: 0.6;
+}
+
+.card__like-count {
+  margin-top: 5px; /* Отступ сверху для разделения кнопки и текста */
+  font-size: 12px; /* Размер текста для компактного отображения */
+  color: #6c6c6c; /* Цвет текста */
 }

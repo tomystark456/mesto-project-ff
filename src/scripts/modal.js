@@ -7,12 +7,15 @@ export function openModal(modalWindow) {
   // Открываем модальное окно с небольшой задержкой для плавности анимации
   setTimeout(() => {
     modalWindow.classList.add('popup_is-opened');
-    closeButton.focus(); // Устанавливаем фокус на кнопку закрытия
+    if (closeButton) {
+      closeButton.focus(); // Устанавливаем фокус на кнопку закрытия
+      // Добавляем обработчик для кнопки закрытия
+      closeButton.addEventListener('click', () => closeModal(modalWindow));
+    }
   }, 1);
 
   // Добавляем обработчики событий для закрытия модального окна
-  modalWindow.addEventListener('click', closeByButton); // Закрытие по кнопке
-  modalWindow.addEventListener('click', closeByOverlay); // Закрытие по клику на оверлей
+  modalWindow.addEventListener('mousedown', closeByOverlay); // Закрытие по клику на оверлей
   document.addEventListener('keydown', closeByEscape); // Закрытие по нажатию клавиши Escape
 }
 
@@ -26,33 +29,72 @@ export function closeModal(modalWindow) {
   }, 600);
 
   // Удаляем обработчики событий
-  modalWindow.removeEventListener('click', closeByButton); // Удаляем обработчик закрытия по кнопке
-  modalWindow.removeEventListener('click', closeByOverlay); // Удаляем обработчик закрытия по оверлею
+  modalWindow.removeEventListener('mousedown', closeByOverlay); // Удаляем обработчик закрытия по оверлею
   document.removeEventListener('keydown', closeByEscape); // Удаляем обработчик закрытия по Escape
-}
 
-// Обработчик: закрытие модального окна по кнопке
-function closeByButton(evt) {
-  if (evt.target.classList.contains('popup__close')) {
-    closeModal(getActiveModal());
+  // Удаляем обработчик для кнопки закрытия
+  const closeButton = modalWindow.querySelector('.popup__close');
+  if (closeButton) {
+    closeButton.removeEventListener('click', () => closeModal(modalWindow));
   }
 }
 
 // Обработчик: закрытие модального окна по клику на оверлей
 function closeByOverlay(evt) {
-  if (evt.target.classList.contains('popup')) {
-    closeModal(getActiveModal());
+  if (evt.target.classList.contains('popup') && !evt.target.closest('.popup__content')) {
+    closeModal(evt.target.closest('.popup'));
   }
 }
 
 // Обработчик: закрытие модального окна по нажатию клавиши Escape
 function closeByEscape(evt) {
   if (evt.key === 'Escape') {
-    closeModal(getActiveModal());
+    const activeModal = document.querySelector('.popup_is-opened');
+    if (activeModal) {
+      closeModal(activeModal);
+    }
   }
 }
 
-// Функция для получения активного модального окна
-function getActiveModal() {
-  return document.querySelector('.popup_is-opened'); // Возвращает текущий открытый popup
+// Добавляем обработчик для открытия модального окна изменения аватара
+export function addProfileImageClickHandler(profileImageSelector, modalWindow) {
+  const profileImage = document.querySelector(profileImageSelector);
+  if (profileImage) {
+    profileImage.addEventListener('click', () => openModal(modalWindow));
+  }
+}
+
+export function handleAvatarFormSubmit(form, profileAvatar, apiUpdateAvatar) {
+  form.addEventListener('submit', (evt) => {
+    evt.preventDefault();
+
+    const submitButton = form.querySelector('.popup__button');
+    const avatarInput = form.querySelector('#avatar-url');
+    const errorElement = form.querySelector(`#${avatarInput.id}-error`);
+
+    // Проверяем валидность URL
+    if (!avatarInput.validity.valid) {
+      errorElement.textContent = avatarInput.dataset.errorMessage || 'Введите корректный URL';
+      avatarInput.classList.add('popup__input_type_error');
+      return;
+    } else {
+      errorElement.textContent = '';
+      avatarInput.classList.remove('popup__input_type_error');
+    }
+
+    submitButton.textContent = 'Сохранение...';
+
+    apiUpdateAvatar(avatarInput.value)
+      .then((updatedData) => {
+        profileAvatar.style.backgroundImage = `url(${updatedData.avatar})`;
+        closeModal(form.closest('.popup'));
+        form.reset();
+      })
+      .catch((err) => {
+        console.error('Ошибка обновления аватара:', err);
+      })
+      .finally(() => {
+        submitButton.textContent = 'Обновить';
+      });
+  });
 }

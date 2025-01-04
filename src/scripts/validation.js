@@ -1,15 +1,14 @@
 export { activateValidation, resetValidationErrors, validateFormForEditing };
 
-// Функция для активации валидации
+// Активируем валидацию для всех форм
 const activateValidation = (config) => {
   const forms = Array.from(document.querySelectorAll(config.formSelector));
-
   forms.forEach((form) => {
     initializeEventListeners(form, config);
   });
 };
 
-// Функция для инициализации обработчиков событий на полях формы
+// Инициализация обработчиков для формы
 const initializeEventListeners = (form, config) => {
   const inputs = Array.from(form.querySelectorAll(config.inputSelector));
   const submitButton = form.querySelector(config.submitButtonSelector);
@@ -17,68 +16,42 @@ const initializeEventListeners = (form, config) => {
   inputs.forEach((input) => {
     input.addEventListener('input', () => {
       checkInputValidity(form, input, config);
-      updateSubmitButtonState(inputs, submitButton, config);
+      toggleSubmitButtonState(inputs, submitButton, config);
     });
   });
 };
 
-// Функция проверки валидности ввода
+// Проверяем валидность ввода
 const checkInputValidity = (form, input, config) => {
-  const pattern = new RegExp(input.dataset.pattern || '.*');
-  const errorText = input.dataset.errorMessage || 'Ошибка в поле';
-  const maxLength = input.dataset.maxLength;
-
   if (input.validity.valueMissing) {
     displayInputError(form, input, 'Вы пропустили это поле.', config);
   } else if (input.type === 'url' && !input.validity.valid) {
-    displayInputError(form, input, 'Введите адрес сайта.', config);
-  } else if (input.value.length < 2) {
-    displayInputError(form, input, 'Минимальная длина: 2 символа', config);
-  } else if (maxLength && input.value.length > maxLength) {
-    displayInputError(form, input, `Максимальная длина: ${maxLength} символов`, config);
-  } else if (!pattern.test(input.value)) {
-    displayInputError(form, input, errorText, config);
-    input.setCustomValidity(errorText);
+    displayInputError(form, input, 'Введите корректный URL.', config);
+  } else if (input.validity.tooShort || input.validity.tooLong) {
+    const length = input.validity.tooShort ? 'короткое' : 'длинное';
+    displayInputError(form, input, `Значение слишком ${length}.`, config);
   } else {
     hideInputError(form, input, config);
-    input.setCustomValidity('');
   }
 };
 
+// Показываем ошибку
+const displayInputError = (form, input, errorMessage, config) => {
+  let errorElement = form.querySelector(`#${input.id}-error`);
 
-
-// Функция для подготовки формы перед редактированием
-const validateFormForEditing = (form, config) => {
-  const inputs = Array.from(form.querySelectorAll(config.inputSelector));
-  const submitButton = form.querySelector(config.submitButtonSelector);
-
-  inputs.forEach((input) => {
-    checkInputValidity(form, input, config);
-  });
-
-  updateSubmitButtonState(inputs, submitButton, config);
-};
-
-// Функция отображения ошибки
-const displayInputError = (form, input, message, config) => {
-  let errorElement = form.querySelector(`#${input.id}-error`); // Ищем по ID
-
-  // Если элемент ошибки не найден, создаем его
+  // Если элемент ошибки отсутствует, создаем его
   if (!errorElement) {
     errorElement = document.createElement('span');
     errorElement.id = `${input.id}-error`;
     errorElement.classList.add(config.errorClass);
-    input.insertAdjacentElement('afterend', errorElement); // Добавляем после поля ввода
+    input.insertAdjacentElement('afterend', errorElement);
   }
 
   input.classList.add(config.inputErrorClass);
-  errorElement.textContent = message;
+  errorElement.textContent = errorMessage;
   errorElement.classList.add(config.errorClass);
 };
 
-
-
-// Функция скрытия ошибки
 const hideInputError = (form, input, config) => {
   const errorElement = form.querySelector(`#${input.id}-error`);
   if (errorElement) {
@@ -89,31 +62,36 @@ const hideInputError = (form, input, config) => {
 };
 
 
-// Проверка наличия ошибок
-const containsInvalidInput = (inputs) => {
+// Проверяем, есть ли ошибки в полях
+const hasInvalidInput = (inputs) => {
   return inputs.some((input) => !input.validity.valid);
 };
 
-// Обновление состояния кнопки отправки
-const updateSubmitButtonState = (inputs, button, config) => {
-  if (containsInvalidInput(inputs)) {
-    button.disabled = true;
-    button.classList.add(config.inactiveButtonClass);
+// Переключаем состояние кнопки отправки
+const toggleSubmitButtonState = (inputs, submitButton, config) => {
+  if (hasInvalidInput(inputs)) {
+    submitButton.classList.add(config.inactiveButtonClass);
+    submitButton.disabled = true;
   } else {
-    button.disabled = false;
-    button.classList.remove(config.inactiveButtonClass);
+    submitButton.classList.remove(config.inactiveButtonClass);
+    submitButton.disabled = false;
   }
 };
 
-// Сброс ошибок валидации
+// Сбрасываем ошибки перед открытием формы
 const resetValidationErrors = (form, config) => {
   const inputs = Array.from(form.querySelectorAll(config.inputSelector));
   const submitButton = form.querySelector(config.submitButtonSelector);
 
-  inputs.forEach((input) => {
-    hideInputError(form, input, config);
-  });
+  inputs.forEach((input) => hideInputError(form, input, config));
+  toggleSubmitButtonState(inputs, submitButton, config);
+};
 
-  submitButton.disabled = true;
-  submitButton.classList.add(config.inactiveButtonClass);
+// Проверка формы перед редактированием
+const validateFormForEditing = (form, config) => {
+  const inputs = Array.from(form.querySelectorAll(config.inputSelector));
+  const submitButton = form.querySelector(config.submitButtonSelector);
+
+  inputs.forEach((input) => checkInputValidity(form, input, config));
+  toggleSubmitButtonState(inputs, submitButton, config);
 };
