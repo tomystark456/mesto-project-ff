@@ -1,11 +1,5 @@
 // Настройки API
-const config = {
-  baseUrl: 'https://nomoreparties.co/v1/wff-cohort-29',
-  headers: {
-    authorization: 'e3f39503-b0d3-430a-8b19-b62eb617530e',
-    'Content-Type': 'application/json',
-  },
-};
+import {apiSettings} from './apiConfig.js';
 
 // Универсальная функция проверки ответа сервера
 const checkServerResponse = (res) => {
@@ -17,65 +11,72 @@ const checkServerResponse = (res) => {
 
 // Получаем данные пользователя
 export const fetchUserProfile = () => {
-  return fetch(`${config.baseUrl}/users/me`, {
-    headers: config.headers,
+  return fetch(`${apiSettings.baseUrl}/users/me`, {
+    headers: apiSettings.headers,
   }).then(checkServerResponse);
 };
 
 // Загружаем карточки
 export const loadCards = () => {
-  return fetch(`${config.baseUrl}/cards`, {
-    headers: config.headers,
+  return fetch(`${apiSettings.baseUrl}/cards`, {
+    headers: apiSettings.headers,
   }).then(checkServerResponse);
 };
 
 // Обновляем профиль
 export const updateProfile = (name, about) => {
-  return fetch(`${config.baseUrl}/users/me`, {
+  return fetch(`${apiSettings.baseUrl}/users/me`, {
     method: 'PATCH',
-    headers: config.headers,
-    body: JSON.stringify({ name, about }),
+    headers: apiSettings.headers,
+    body: JSON.stringify({name, about}),
   }).then(checkServerResponse);
 };
 
 // Добавляем новую карточку
 export const addCard = (name, link) => {
-  return fetch(`${config.baseUrl}/cards`, {
+  return fetch(`${apiSettings.baseUrl}/cards`, {
     method: 'POST',
-    headers: config.headers,
-    body: JSON.stringify({ name, link }),
+    headers: apiSettings.headers,
+    body: JSON.stringify({name, link}),
   }).then(checkServerResponse);
 };
 
 // Удаляем карточку
 export const removeCard = (cardId) => {
-  return fetch(`${config.baseUrl}/cards/${cardId}`, {
+  return fetch(`${apiSettings.baseUrl}/cards/${cardId}`, {
     method: 'DELETE',
-    headers: config.headers,
+    headers: apiSettings.headers,
   }).then(checkServerResponse);
 };
 
 // Ставим лайк
 export const setLike = (cardId) => {
-  return fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
+  if (typeof cardId !== 'string' || !cardId.trim()) {
+    console.error('Некорректный идентификатор карточки:', cardId);
+    return Promise.reject('Некорректный идентификатор карточки.');
+  }
+  return fetch(`${apiSettings.baseUrl}/cards/likes/${cardId}`, {
     method: 'PUT',
-    headers: config.headers,
+    headers: apiSettings.headers,
   }).then(checkServerResponse);
 };
 
-// Убираем лайк
 export const removeLike = (cardId) => {
-  return fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
+  if (typeof cardId !== 'string' || !cardId.trim()) {
+    console.error('Некорректный идентификатор карточки:', cardId);
+    return Promise.reject('Некорректный идентификатор карточки.');
+  }
+  return fetch(`${apiSettings.baseUrl}/cards/likes/${cardId}`, {
     method: 'DELETE',
-    headers: config.headers,
+    headers: apiSettings.headers,
   }).then(checkServerResponse);
 };
 
 // Обновляем аватар
 export const changeAvatar = (avatarUrl) => {
-  return fetch(`${config.baseUrl}/users/me/avatar`, {
+  return fetch(`${apiSettings.baseUrl}/users/me/avatar`, {
     method: 'PATCH',
-    headers: config.headers,
-    body: JSON.stringify({ avatar: avatarUrl }),
+    headers: apiSettings.headers,
+    body: JSON.stringify({avatar: avatarUrl}),
   }).then(checkServerResponse);
 };

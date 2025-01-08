@@ -3,23 +3,23 @@ import { openModal } from './modal.js';
 export const createCard = (
   cardData,
   template,
-  deleteCard,
-  setLike,
-  removeLike,
+  deleteCardCallback,
+  setLikeCallback,
+  removeLikeCallback,
+  openPopupImageCallback,
   userId
 ) => {
   const cardElement = template.querySelector('.card').cloneNode(true);
   const cardImage = cardElement.querySelector('.card__image');
   const cardTitle = cardElement.querySelector('.card__title');
   const likeButton = cardElement.querySelector('.card__like-button');
-  const likeCount = cardElement.querySelector('.card__like-count'); // Проверяем наличие элемента
+  const likeCount = cardElement.querySelector('.card__like-count');
+  const deleteButton = cardElement.querySelector('.card__delete-button');
 
   if (!likeCount) {
     console.error('Элемент для отображения лайков отсутствует в шаблоне карточки.');
     return;
   }
-
-  const deleteButton = cardElement.querySelector('.card__delete-button');
 
   // Устанавливаем данные карточки
   cardImage.src = cardData.link;
@@ -32,22 +32,19 @@ export const createCard = (
     likeButton.classList.add('card__like-button_is-active');
   }
 
-  // Удаляем кнопку удаления, если карточка не принадлежит пользователю
+  // Удаление карточки
   if (cardData.owner._id !== userId) {
     deleteButton.remove();
   } else {
-    // Обработчик удаления карточки
     deleteButton.addEventListener('click', () => {
-      deleteCard(cardData._id)
-        .then(() => cardElement.remove())
-        .catch((err) => console.error(`Ошибка удаления карточки: ${err}`));
+      deleteCardCallback(cardData._id, cardElement);
     });
   }
 
-  // Обработчик лайка
+  // Лайки
   likeButton.addEventListener('click', () => {
     const isLiked = likeButton.classList.contains('card__like-button_is-active');
-    const likeAction = isLiked ? removeLike : setLike;
+    const likeAction = isLiked ? removeLikeCallback : setLikeCallback;
 
     likeAction(cardData._id)
       .then((updatedCard) => {
@@ -57,17 +54,9 @@ export const createCard = (
       .catch((err) => console.error(`Ошибка изменения лайка: ${err}`));
   });
 
-  // Открытие изображения в попапе
+  // Открытие попапа с изображением
   cardImage.addEventListener('click', () => {
-    const popupImage = document.querySelector('.popup_type_image');
-    const popupImageElement = popupImage.querySelector('.popup__image');
-    const popupCaption = popupImage.querySelector('.popup__caption');
-
-    popupImageElement.src = cardData.link;
-    popupImageElement.alt = cardData.name;
-    popupCaption.textContent = cardData.name;
-
-    openModal(popupImage);
+    openPopupImageCallback(cardData);
   });
 
   return cardElement;
