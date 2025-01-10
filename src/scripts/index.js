@@ -45,6 +45,18 @@ const addCardButton = document.querySelector('.profile__add-button');
 
 let userId;
 
+// Функция для обработки лайков
+function handleLike(cardId, isLiked, likeButton, likeCount) {
+  const likeAction = isLiked ? removeLike : setLike;
+
+  return likeAction(cardId)
+    .then((updatedCard) => {
+      likeCount.textContent = updatedCard.likes.length;
+      likeButton.classList.toggle('card__like-button_is-active');
+    })
+    .catch((err) => console.error(`Ошибка изменения лайка: ${err}`));
+}
+
 // Открытие попапа с изображением
 function openPopupImage({link, name}) {
   popupImageElementInPopup.src = link;
@@ -62,17 +74,10 @@ function deleteCardCallback(cardId, cardElement) {
     .catch((err) => console.error(`Ошибка удаления карточки: ${err}`));
 }
 
-// Установка и удаление лайков
-function setLikeCallback(cardId) {
-  return setLike(cardId);
-}
-
-function removeLikeCallback(cardId) {
-  return removeLike(cardId);
-}
 function setButtonTextToSaving(button) {
   button.textContent = 'Сохранение...';
 }
+
 function restoreButtonText(button, text) {
   button.textContent = text;
 }
@@ -90,8 +95,7 @@ Promise.all([fetchUserProfile(), loadCards()])
         card,
         cardTemplate,
         deleteCardCallback,
-        setLikeCallback,
-        removeLikeCallback,
+        handleLike,
         openPopupImage,
         userId
       );
@@ -156,8 +160,7 @@ formCard.addEventListener('submit', (evt) => {
         newCard,
         cardTemplate,
         deleteCardCallback,
-        setLikeCallback,
-        removeLikeCallback,
+        handleLike,
         openPopupImage,
         userId
       );

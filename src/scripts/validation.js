@@ -19,14 +19,23 @@ const initializeEventListeners = (form, config) => {
   });
 };
 
-// Проверяем валидность ввода (только кастомная ошибка для паттерна)
+// Проверяем валидность ввода
 const checkInputValidity = (form, input, config) => {
+  // Устанавливаем кастомное сообщение для patternMismatch
   if (input.validity.patternMismatch) {
-    displayInputError(form, input, input.dataset.errorMessage || 'Введите корректное значение.', config);
+    input.setCustomValidity(input.dataset.errorMessage || 'Введите корректное значение.');
   } else {
-    hideInputError(form, input, config);
+    input.setCustomValidity(''); // Сбрасываем кастомное сообщение
+  }
+
+  // Проверяем общее состояние валидности поля
+  if (input.validity.valid) {
+    hideInputError(form, input, config); // Скрываем ошибку, если поле валидно
+  } else {
+    displayInputError(form, input, input.validationMessage, config); // Показываем стандартное сообщение об ошибке
   }
 };
+
 
 // Показываем ошибку
 const displayInputError = (form, input, errorMessage, config) => {

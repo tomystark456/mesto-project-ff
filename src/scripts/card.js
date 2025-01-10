@@ -1,14 +1,4 @@
-import { openModal } from './modal.js';
-
-export const createCard = (
-  cardData,
-  template,
-  deleteCardCallback,
-  setLikeCallback,
-  removeLikeCallback,
-  openPopupImageCallback,
-  userId
-) => {
+export const createCard = (cardData, template, deleteCardCallback, likeCallback, openPopupImageCallback, userId) => {
   const cardElement = template.querySelector('.card').cloneNode(true);
   const cardImage = cardElement.querySelector('.card__image');
   const cardTitle = cardElement.querySelector('.card__title');
@@ -44,14 +34,7 @@ export const createCard = (
   // Лайки
   likeButton.addEventListener('click', () => {
     const isLiked = likeButton.classList.contains('card__like-button_is-active');
-    const likeAction = isLiked ? removeLikeCallback : setLikeCallback;
-
-    likeAction(cardData._id)
-      .then((updatedCard) => {
-        likeCount.textContent = updatedCard.likes.length;
-        likeButton.classList.toggle('card__like-button_is-active');
-      })
-      .catch((err) => console.error(`Ошибка изменения лайка: ${err}`));
+    likeCallback(cardData._id, isLiked, likeButton, likeCount);
   });
 
   // Открытие попапа с изображением
